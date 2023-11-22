@@ -145,46 +145,37 @@ fs.createReadStream(dataCsvPath)
         const endDayStart = addDays(endDate, -15);
         const endDayEnd = addDays(endDate, -5);
 
-        let endDateCandidate = endDayStart;
-
-        while (endDateCandidate <= endDayEnd) {
-          if (
-            getDay(endDateCandidate) === 3 ||
-            getDay(endDateCandidate) === 5
-          ) {
+        while (endDayStart <= endDayEnd) {
+          if (getDay(endDayStart) === 3 || getDay(endDayStart) === 5) {
             break;
           }
-          endDateCandidate = addDays(endDateCandidate, 1);
+          endDayStart = addDays(endDayStart, 1);
         }
-        endDateCandidate = addMinutes(
-          addHours(endDateCandidate, generateHours(endDateCandidate)),
+        endDayStart = addMinutes(
+          addHours(endDayStart, generateHours(endDayStart)),
           generateMinutes("end")
         );
 
         console.log(
           "isAnEndDate",
-          isOverlap(endDateCandidate, OUTPUT_ARRAY),
-          format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss")
+          isOverlap(endDayStart, OUTPUT_ARRAY),
+          format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
-        if (isOverlap(endDateCandidate, OUTPUT_ARRAY)) {
+        if (isOverlap(endDayStart, OUTPUT_ARRAY)) {
           console.log("Overlap detected for end date. Generating a new date.");
-          endDateCandidate = generateNewDate(
-            endDateCandidate,
-            OUTPUT_ARRAY,
-            "end"
-          );
+          endDayStart = generateNewDate(endDayStart, OUTPUT_ARRAY, "end");
         }
 
         console.log(
           "After end date check:",
-          format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss")
+          format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
         console.log(
           "isAnEndDate",
-          isOverlap(endDateCandidate, OUTPUT_ARRAY),
-          format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss")
+          isOverlap(endDayStart, OUTPUT_ARRAY),
+          format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
         const outputObject = {
@@ -207,9 +198,9 @@ fs.createReadStream(dataCsvPath)
           lastDate: {
             Object: "Welcome to the Jungle!",
             text: LAST_TEXT,
-            startDate: format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss"),
+            startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
             endDate: format(
-              addHours(endDateCandidate, 1),
+              addHours(endDayStart, 1),
               "EEEE dd LLLL yyyy HH:mm:ss"
             ),
           },
