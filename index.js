@@ -14,20 +14,20 @@ const {
 const fs = require("fs");
 const dataArray = [];
 const dataCsvPath = "./data/data.csv";
-const firstText = "Hello welcome to Mille!";
-const secondText = "This is the second text";
-const lastText = "This is the last text";
+const FIRST_TEXT = "Hello welcome to Mille!";
+const SECOND_TEXT = "This is the second text";
+const LAST_TEXT = "This is the last text";
+const OUTPUT_ARRAY = [];
 
-function isOverlap(date, outputArray) {
+function isOverlap(date, OUTPUT_ARRAY) {
   const startDateString = format(date, "EEEE dd LLLL yyyy HH:mm:ss");
   const endDateString = format(
     addMinutes(date, 30),
     "EEEE dd LLLL yyyy HH:mm:ss"
   );
 
-  return outputArray.some((it) => {
+  return OUTPUT_ARRAY.some((it) => {
     const itStartDateString = it.secondDate.startDate;
-
     const itEndDateString = it.lastDate.endDate;
 
     return (
@@ -36,7 +36,7 @@ function isOverlap(date, outputArray) {
   });
 }
 
-function generateNewDate(currentDate, outputArray, type) {
+function generateNewDate(currentDate, OUTPUT_ARRAY, type) {
   let newDate = currentDate;
 
   while (true) {
@@ -54,7 +54,7 @@ function generateNewDate(currentDate, outputArray, type) {
       }
     }
 
-    if (!isOverlap(newDate, outputArray)) {
+    if (!isOverlap(newDate, OUTPUT_ARRAY)) {
       break;
     }
   }
@@ -100,7 +100,6 @@ fs.createReadStream(dataCsvPath)
     dataArray.push(data);
   })
   .on("end", () => {
-    const outputArray = [];
     if (dataArray) {
       for (let i = 0; i < dataArray.length; i++) {
         const data = dataArray[i];
@@ -110,39 +109,37 @@ fs.createReadStream(dataCsvPath)
         const durationInDays = differenceInDays(endDate, startDate);
 
         let middleDate = addBusinessDays(startDate, durationInDays / 2);
-
-        let currentDate = middleDate;
-        while (getDay(currentDate) !== 3 && getDay(currentDate) !== 5) {
-          currentDate = addDays(currentDate, 1);
+        while (getDay(middleDate) !== 3 && getDay(middleDate) !== 5) {
+          middleDate = addDays(middleDate, 1);
         }
 
-        currentDate = addMinutes(
-          addHours(currentDate, generateHours(currentDate)),
+        middleDate = addMinutes(
+          addHours(middleDate, generateHours(middleDate)),
           generateMinutes("middle")
         );
 
         console.log(
           "isAMiddleDate",
-          isOverlap(currentDate, outputArray),
-          format(currentDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          isOverlap(middleDate, OUTPUT_ARRAY),
+          format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
-        if (isOverlap(currentDate, outputArray)) {
+        if (isOverlap(middleDate, OUTPUT_ARRAY)) {
           console.log(
             "Overlap detected for middle date. Generating a new date."
           );
-          currentDate = generateNewDate(currentDate, outputArray, "middle");
+          middleDate = generateNewDate(middleDate, OUTPUT_ARRAY, "middle");
         }
 
         console.log(
           "After middle date check:",
-          format(currentDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
         console.log(
           "isAMiddleDate",
-          isOverlap(currentDate, outputArray),
-          format(currentDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          isOverlap(middleDate, OUTPUT_ARRAY),
+          format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
         const endDayStart = addDays(endDate, -15);
@@ -166,15 +163,15 @@ fs.createReadStream(dataCsvPath)
 
         console.log(
           "isAnEndDate",
-          isOverlap(endDateCandidate, outputArray),
+          isOverlap(endDateCandidate, OUTPUT_ARRAY),
           format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
-        if (isOverlap(endDateCandidate, outputArray)) {
+        if (isOverlap(endDateCandidate, OUTPUT_ARRAY)) {
           console.log("Overlap detected for end date. Generating a new date.");
           endDateCandidate = generateNewDate(
             endDateCandidate,
-            outputArray,
+            OUTPUT_ARRAY,
             "end"
           );
         }
@@ -186,7 +183,7 @@ fs.createReadStream(dataCsvPath)
 
         console.log(
           "isAnEndDate",
-          isOverlap(endDateCandidate, outputArray),
+          isOverlap(endDateCandidate, OUTPUT_ARRAY),
           format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
@@ -195,12 +192,12 @@ fs.createReadStream(dataCsvPath)
           MailTo: data.MailTo,
           firstDate: {
             Object: "Welcome to the Jungle!",
-            text: firstText,
+            text: FIRST_TEXT,
             date: format(startDate, "EEEE dd LLLL yyyy"),
           },
           secondDate: {
             Object: "Welcome to the Jungle!",
-            text: secondText,
+            text: SECOND_TEXT,
             startDate: format(currentDate, "EEEE dd LLLL yyyy HH:mm:ss"),
             endDate: format(
               addMinutes(currentDate, 30),
@@ -209,7 +206,7 @@ fs.createReadStream(dataCsvPath)
           },
           lastDate: {
             Object: "Welcome to the Jungle!",
-            text: lastText,
+            text: LAST_TEXT,
             startDate: format(endDateCandidate, "EEEE dd LLLL yyyy HH:mm:ss"),
             endDate: format(
               addHours(endDateCandidate, 1),
@@ -218,8 +215,8 @@ fs.createReadStream(dataCsvPath)
           },
         };
 
-        outputArray.push(outputObject);
-        console.log("New Array", outputArray, outputArray.length);
+        OUTPUT_ARRAY.push(outputObject);
+        console.log("New Array", OUTPUT_ARRAY, OUTPUT_ARRAY.length);
       }
     }
   })
