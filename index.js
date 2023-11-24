@@ -12,15 +12,24 @@ const {
   setMinutes,
 } = require("date-fns");
 const fs = require("fs");
-const dataArray = [];
 const dataCsvPath = "./data/data.csv";
-const FIRST_TEXT = "Hello welcome to Mille!";
-const SECOND_TEXT = "This is the second text";
-const LAST_TEXT = "This is the last text";
+const FIRST_TEXT = {
+  object: "Welcome to Mille!",
+  content: "Hello welcome to Mille!",
+};
+const SECOND_TEXT = {
+  object: "Welcome to Mille!",
+  content: "Hello welcome to Mille!",
+};
+const LAST_TEXT = {
+  object: "Welcome to Mille!",
+  content: "Hello welcome to Mille!",
+};
+const dataArray = [];
 const OUTPUT_ARRAY = [];
 
 // Compare the newDate string to the existing dates strings in the array and return a boolean
-function isOverlap(date, OUTPUT_ARRAY, type) {
+function isOverlap(date, OUTPUT_ARRAY) {
   // format the new date into a string
   // start date
   const startDateString = format(date, "EEEE dd LLLL yyyy HH:mm:ss");
@@ -109,125 +118,128 @@ function generateMinutes(type) {
 }
 
 // read the csv file
-fs.createReadStream(dataCsvPath)
-  .pipe(csv(["MailFrom", "MailTo", "Start", "End"]))
-  .on("data", (data) => {
-    data.MailFrom = data.MailFrom.replace(/"/g, "");
-    data.MailTo = data.MailTo.replace(/"/g, "");
-    dataArray.push(data);
-  })
-  .on("end", () => {
-    if (dataArray) {
-      for (let i = 0; i < dataArray.length; i++) {
-        const data = dataArray[i];
-        const startDate = parse(data.Start, "dd/MM/yyyy", new Date());
-        const endDate = parse(data.End, "dd/MM/yyyy", new Date());
+function analyzeData() {
+  fs.createReadStream(dataCsvPath)
+    .pipe(csv(["MailFrom", "MailTo", "Start", "End"]))
+    .on("data", (data) => {
+      data.MailFrom = data.MailFrom.replace(/"/g, "");
+      data.MailTo = data.MailTo.replace(/"/g, "");
+      dataArray.push(data);
+    })
+    .on("end", () => {
+      if (dataArray) {
+        for (let i = 0; i < dataArray.length; i++) {
+          const data = dataArray[i];
+          const startDate = parse(data.Start, "dd/MM/yyyy", new Date());
+          const endDate = parse(data.End, "dd/MM/yyyy", new Date());
 
-        const durationInDays = differenceInDays(endDate, startDate);
+          const durationInDays = differenceInDays(endDate, startDate);
 
-        let middleDate = addBusinessDays(startDate, durationInDays / 2);
-        while (getDay(middleDate) !== 3 && getDay(middleDate) !== 5) {
-          middleDate = addDays(middleDate, 1);
-        }
-
-        middleDate = addMinutes(
-          addHours(middleDate, generateHours(middleDate)),
-          generateMinutes("middle")
-        );
-
-        console.log(
-          "isAMiddleDate",
-          isOverlap(middleDate, OUTPUT_ARRAY),
-          format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-        );
-
-        if (isOverlap(middleDate, OUTPUT_ARRAY)) {
-          console.log(
-            "Overlap detected for middle date. Generating a new date."
-          );
-          middleDate = generateNewDate(middleDate, OUTPUT_ARRAY, "middle");
-        }
-
-        console.log(
-          "After middle date check:",
-          format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-        );
-
-        console.log(
-          "isAMiddleDate",
-          isOverlap(middleDate, OUTPUT_ARRAY),
-          format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-        );
-
-        let endDayStart = addDays(endDate, -15);
-        const endDayEnd = addDays(endDate, -5);
-
-        while (endDayStart <= endDayEnd) {
-          if (getDay(endDayStart) === 3 || getDay(endDayStart) === 5) {
-            break;
+          let middleDate = addBusinessDays(startDate, durationInDays / 2);
+          while (getDay(middleDate) !== 3 && getDay(middleDate) !== 5) {
+            middleDate = addDays(middleDate, 1);
           }
-          endDayStart = addDays(endDayStart, 1);
+
+          middleDate = addMinutes(
+            addHours(middleDate, generateHours(middleDate)),
+            generateMinutes("middle")
+          );
+
+          console.log(
+            "isAMiddleDate",
+            isOverlap(middleDate, OUTPUT_ARRAY),
+            format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          );
+
+          if (isOverlap(middleDate, OUTPUT_ARRAY)) {
+            console.log(
+              "Overlap detected for middle date. Generating a new date."
+            );
+            middleDate = generateNewDate(middleDate, OUTPUT_ARRAY, "middle");
+          }
+
+          console.log(
+            "After middle date check:",
+            format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          );
+
+          console.log(
+            "isAMiddleDate",
+            isOverlap(middleDate, OUTPUT_ARRAY),
+            format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          );
+
+          let endDayStart = addDays(endDate, -15);
+          const endDayEnd = addDays(endDate, -5);
+
+          while (endDayStart <= endDayEnd) {
+            if (getDay(endDayStart) === 3 || getDay(endDayStart) === 5) {
+              break;
+            }
+            endDayStart = addDays(endDayStart, 1);
+          }
+          endDayStart = addMinutes(
+            addHours(endDayStart, generateHours(endDayStart)),
+            generateMinutes("end")
+          );
+
+          console.log(
+            "isAnEndDate",
+            isOverlap(endDayStart, OUTPUT_ARRAY),
+            format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
+          );
+
+          if (isOverlap(endDayStart, OUTPUT_ARRAY)) {
+            console.log(
+              "Overlap detected for end date. Generating a new date."
+            );
+            endDayStart = generateNewDate(endDayStart, OUTPUT_ARRAY, "end");
+          }
+
+          console.log(
+            "After end date check:",
+            format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
+          );
+
+          console.log(
+            "isAnEndDate",
+            isOverlap(endDayStart, OUTPUT_ARRAY),
+            format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
+          );
+
+          const outputObject = {
+            MailFrom: data.MailFrom,
+            MailTo: data.MailTo,
+            firstDate: {
+              FIRST_TEXT,
+              date: format(startDate, "EEEE dd LLLL yyyy"),
+            },
+            secondDate: {
+              SECOND_TEXT,
+              startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
+              endDate: format(
+                addMinutes(middleDate, 30),
+                "EEEE dd LLLL yyyy HH:mm:ss"
+              ),
+            },
+            lastDate: {
+              LAST_TEXT,
+              startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
+              endDate: format(
+                addHours(endDayStart, 1),
+                "EEEE dd LLLL yyyy HH:mm:ss"
+              ),
+            },
+          };
+
+          OUTPUT_ARRAY.push(outputObject);
+          console.log("New Array", OUTPUT_ARRAY, OUTPUT_ARRAY.length);
         }
-        endDayStart = addMinutes(
-          addHours(endDayStart, generateHours(endDayStart)),
-          generateMinutes("end")
-        );
-
-        console.log(
-          "isAnEndDate",
-          isOverlap(endDayStart, OUTPUT_ARRAY),
-          format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-        );
-
-        if (isOverlap(endDayStart, OUTPUT_ARRAY)) {
-          console.log("Overlap detected for end date. Generating a new date.");
-          endDayStart = generateNewDate(endDayStart, OUTPUT_ARRAY, "end");
-        }
-
-        console.log(
-          "After end date check:",
-          format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-        );
-
-        console.log(
-          "isAnEndDate",
-          isOverlap(endDayStart, OUTPUT_ARRAY),
-          format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-        );
-
-        const outputObject = {
-          MailFrom: data.MailFrom,
-          MailTo: data.MailTo,
-          firstDate: {
-            Object: "Welcome to the Jungle!",
-            text: FIRST_TEXT,
-            date: format(startDate, "EEEE dd LLLL yyyy"),
-          },
-          secondDate: {
-            Object: "Welcome to the Jungle!",
-            text: SECOND_TEXT,
-            startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
-            endDate: format(
-              addMinutes(middleDate, 30),
-              "EEEE dd LLLL yyyy HH:mm:ss"
-            ),
-          },
-          lastDate: {
-            Object: "Welcome to the Jungle!",
-            text: LAST_TEXT,
-            startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
-            endDate: format(
-              addHours(endDayStart, 1),
-              "EEEE dd LLLL yyyy HH:mm:ss"
-            ),
-          },
-        };
-
-        OUTPUT_ARRAY.push(outputObject);
-        console.log("New Array", OUTPUT_ARRAY, OUTPUT_ARRAY.length);
       }
-    }
-  })
-  .on("error", (error) => {
-    console.error("Error reading CSV file:", error);
-  });
+    })
+    .on("error", (error) => {
+      console.error("Error reading CSV file:", error);
+    });
+}
+
+analyzeData();
