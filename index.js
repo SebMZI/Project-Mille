@@ -19,19 +19,33 @@ const SECOND_TEXT = "This is the second text";
 const LAST_TEXT = "This is the last text";
 const OUTPUT_ARRAY = [];
 
-function isOverlap(date, OUTPUT_ARRAY) {
+// Compare the newDate string to the existing dates strings in the array and return a boolean
+function isOverlap(date, OUTPUT_ARRAY, type) {
+  // format the new date into a string
+  // start date
   const startDateString = format(date, "EEEE dd LLLL yyyy HH:mm:ss");
+  // date with 30min more
   const endDateString = format(
     addMinutes(date, 30),
+    "EEEE dd LLLL yyyy HH:mm:ss"
+  );
+  // date with 1 hour more
+  const lastDateString = format(
+    addHours(date, 1),
     "EEEE dd LLLL yyyy HH:mm:ss"
   );
 
   return OUTPUT_ARRAY.some((it) => {
     const itStartDateString = it.secondDate.startDate;
+    const isSecondEndDate = it.secondDate.endDate;
+    const isLastStartDateString = it.lastDate.startDate;
     const itEndDateString = it.lastDate.endDate;
 
     return (
-      itStartDateString === startDateString || itEndDateString === endDateString
+      isLastStartDateString === startDateString ||
+      isSecondEndDate === endDateString ||
+      itStartDateString === startDateString ||
+      itEndDateString === lastDateString
     );
   });
 }
@@ -54,7 +68,7 @@ function generateNewDate(currentDate, OUTPUT_ARRAY, type) {
       }
     }
 
-    if (!isOverlap(newDate, OUTPUT_ARRAY)) {
+    if (!isOverlap(newDate, OUTPUT_ARRAY, type)) {
       break;
     }
   }
@@ -64,6 +78,7 @@ function generateNewDate(currentDate, OUTPUT_ARRAY, type) {
   return newDate;
 }
 
+// generate an hours with a range
 function generateHours(date) {
   console.log(date);
   let hoursRange;
@@ -81,6 +96,7 @@ function generateHours(date) {
   return hoursRange[randomIndex][randomIndexofIndex];
 }
 
+// generate a minute with a range
 function generateMinutes(type) {
   let minutesRange;
   if (type === "middle") {
@@ -92,6 +108,7 @@ function generateMinutes(type) {
   return minutesRange[randomIndex];
 }
 
+// read the csv file
 fs.createReadStream(dataCsvPath)
   .pipe(csv(["MailFrom", "MailTo", "Start", "End"]))
   .on("data", (data) => {
@@ -142,7 +159,7 @@ fs.createReadStream(dataCsvPath)
           format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
         );
 
-        const endDayStart = addDays(endDate, -15);
+        let endDayStart = addDays(endDate, -15);
         const endDayEnd = addDays(endDate, -5);
 
         while (endDayStart <= endDayEnd) {
@@ -189,9 +206,9 @@ fs.createReadStream(dataCsvPath)
           secondDate: {
             Object: "Welcome to the Jungle!",
             text: SECOND_TEXT,
-            startDate: format(currentDate, "EEEE dd LLLL yyyy HH:mm:ss"),
+            startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
             endDate: format(
-              addMinutes(currentDate, 30),
+              addMinutes(middleDate, 30),
               "EEEE dd LLLL yyyy HH:mm:ss"
             ),
           },
