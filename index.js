@@ -28,7 +28,24 @@ const LAST_TEXT = {
 const dataArray = [];
 const OUTPUT_ARRAY = [];
 
-// Compare the newDate string to the existing dates strings in the array and return a boolean
+function readCsvFile() {
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(dataCsvPath)
+      .pipe(csv(["MailFrom", "MailTo", "Start", "End"]))
+      .on("data", (data) => {
+        data.MailFrom = data.MailFrom.replace(/"/g, "");
+        data.MailTo = data.MailTo.replace(/"/g, "");
+        dataArray.push(data);
+      })
+      .on("end", () => {
+        resolve(dataArray);
+      })
+      .on("error", (error) => {
+        reject(error);
+      });
+  });
+}
+
 function isOverlap(date, OUTPUT_ARRAY) {
   // format the new date into a string
   // start date
@@ -87,7 +104,6 @@ function generateNewDate(currentDate, OUTPUT_ARRAY, type) {
   return newDate;
 }
 
-// generate an hours with a range
 function generateHours(date) {
   console.log(date);
   let hoursRange;
@@ -117,21 +133,15 @@ function generateMinutes(type) {
   return minutesRange[randomIndex];
 }
 
-// read the csv file
 function analyzeData() {
-  fs.createReadStream(dataCsvPath)
-    .pipe(csv(["MailFrom", "MailTo", "Start", "End"]))
-    .on("data", (data) => {
-      data.MailFrom = data.MailFrom.replace(/"/g, "");
-      data.MailTo = data.MailTo.replace(/"/g, "");
-      dataArray.push(data);
-    })
-    .on("end", () => {
-      if (dataArray) {
-        for (let i = 0; i < dataArray.length; i++) {
-          const data = dataArray[i];
-          const startDate = parse(data.Start, "dd/MM/yyyy", new Date());
-          const endDate = parse(data.End, "dd/MM/yyyy", new Date());
+  return new Promise(async (resolve, reject) => {
+    try {
+      const data = await readCsvFile();
+
+      if (data) {
+        data.map((item) => {
+          const startDate = parse(item.Start, "dd/MM/yyyy", new Date());
+          const endDate = parse(item.End, "dd/MM/yyyy", new Date());
 
           const durationInDays = differenceInDays(endDate, startDate);
 
@@ -207,15 +217,15 @@ function analyzeData() {
             format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
           );
 
-          const outputObject = {
-            MailFrom: data.MailFrom,
-            MailTo: data.MailTo,
+          const outputItem = {
+            MailFrom: item.MailFrom,
+            MailTo: item.MailTo,
             firstDate: {
-              FIRST_TEXT,
+              ...FIRST_TEXT,
               date: format(startDate, "EEEE dd LLLL yyyy"),
             },
             secondDate: {
-              SECOND_TEXT,
+              ...SECOND_TEXT,
               startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
               endDate: format(
                 addMinutes(middleDate, 30),
@@ -223,7 +233,7 @@ function analyzeData() {
               ),
             },
             lastDate: {
-              LAST_TEXT,
+              ...LAST_TEXT,
               startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
               endDate: format(
                 addHours(endDayStart, 1),
@@ -232,14 +242,25 @@ function analyzeData() {
             },
           };
 
-          OUTPUT_ARRAY.push(outputObject);
-          console.log("New Array", OUTPUT_ARRAY, OUTPUT_ARRAY.length);
-        }
+          OUTPUT_ARRAY.push(outputItem);
+        });
+
+        resolve(OUTPUT_ARRAY);
       }
-    })
-    .on("error", (error) => {
-      console.error("Error reading CSV file:", error);
-    });
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
-analyzeData();
+function getOutputArray() {
+  return analyzeData();
+}
+
+getOutputArray()
+  .then((result) => {
+    console.log("Final OUTPUT_ARRAY:", result);
+  })
+  .catch((error) => {
+    console.error("Error:", error);
+  });
