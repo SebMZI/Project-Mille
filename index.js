@@ -253,14 +253,14 @@ function analyzeData() {
   });
 }
 
-function getOutputArray() {
-  return analyzeData();
+async function getOutputArray() {
+  return analyzeData()
+    .then((result) => {
+      console.log("Final OUTPUT_ARRAY:", result);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 }
 
-getOutputArray()
-  .then((result) => {
-    console.log("Final OUTPUT_ARRAY:", result);
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-  });
+getOutputArray();
