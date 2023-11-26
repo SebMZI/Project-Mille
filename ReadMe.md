@@ -295,31 +295,23 @@ To run tests, run the following command :
 
 ### Function scheduleEmails
  scheduleEmails takes in arguments the outputArray of objects.
- We get access to one of each object by doing a .map() and schedule each email by passing an anonymous function that calls sendMail.
+ We get access to one of each object by doing a .map() and schedule each email.
 
 ```bash
   function scheduleEmails(output) {
     output.map((outputItem) => {
-      const firstMail = schedule.scheduleJob(
-        new Date(outputItem.firstEmail.date),
-        () => {
-          sendMail(outputItem, FIRST_MAIL);
-        }
+      // Schedule the first email to be sent
+      const firstMail = sendMail(outputItem, outputItem.firstEmail, FIRST_MAIL);
+      // Schedule the second email to be sent
+      const secondMail = sendMail(
+        outputItem,
+        outputItem.secondEmail,
+        SECOND_MAIL
       );
-      const secondMail = schedule.scheduleJob(
-        new Date(outputItem.secondEmail.startDate),
-        () => {
-          sendMail(outputItem, SECOND_MAIL);
-        }
-      );
-      const lastMail = schedule.scheduleJob(
-        new Date(outputItem.lastEmail.startDate),
-        () => {
-          sendMail(outputItem, LAST_MAIL);
-        }
-      );
+      // Schedule the last email to be sent
+      const lastMail = sendMail(outputItem, outputItem.lastEmail, LAST_MAIL);
     });
-  }
+
 ```
 
 ### Function sendMail
@@ -327,13 +319,28 @@ To run tests, run the following command :
 
  Then it sends the mail to the specified email address. And logs it.
 ```bash
-  function sendMail(outputItem, mailContent) {
+  function sendMail(outputMail, outputItem, mailContent) {
+    const htmlContent = fs.readFileSync("./index.html", "utf-8");
+    console.log(outputItem);
+
+    const replacedHtml = htmlContent
+      .replace("{{content}}", mailContent.content)
+      .replace(
+        "{{startDate}}",
+        outputItem.startDate ? `from ${outputItem.startDate}` : "You will receive"
+      )
+      .replace(
+        "{{endDate}}",
+        outputItem.endDate
+          ? ` to ${outputItem.endDate}`
+          : " two more emails soon!"
+      );
 
     const mailOptions = {
       from: "mrgy.sebastien@gmail.com",
-      to: outputItem.MailTo,
+      to: outputMail.MailTo,
       subject: mailContent.object,
-      text: mailContent.content,
+      html: replacedHtml,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {

@@ -1,7 +1,8 @@
 require("dotenv").config();
 const csv = require("csv-parser");
 const nodemailer = require("nodemailer");
-const schedule = require("node-schedule");
+const path = require("path");
+// const schedule = require("node-schedule");
 const {
   format,
   differenceInDays,
@@ -17,16 +18,16 @@ const {
 const fs = require("fs");
 const dataCsvPath = "./data/data.csv";
 const FIRST_MAIL = {
-  object: "Welcome to Mille!",
+  object: "Welcome to Mille! This is the first mail",
   content: "Hello welcome to Mille! This is the first mail!",
 };
 const SECOND_MAIL = {
-  object: "Welcome to Mille!",
-  content: "This is the second mail!",
+  object: "Welcome to Mille! This is the second mail",
+  content: "Here is your time slot.",
 };
 const LAST_MAIL = {
-  object: "Welcome to Mille!",
-  content: "This is the third mail!",
+  object: "Welcome to Mille! This is the last mail",
+  content: "Here is your time slot.",
 };
 const dataArray = [];
 const OUTPUT_ARRAY = [];
@@ -42,9 +43,17 @@ const transporter = nodemailer.createTransport({
 // Read the CSV file and populate dataArray with the data
 function readCsvFile() {
   return new Promise((resolve, reject) => {
+    const extCsv = path.extname(dataCsvPath);
+    console.log(extCsv);
+    if (extCsv !== ".csv") {
+      throw new Error("File's extension needs to be .csv");
+    }
     fs.createReadStream(dataCsvPath)
       .pipe(csv(["MailFrom", "MailTo", "Start", "End"]))
       .on("data", (data) => {
+        if (Object.keys(data).length > 4) {
+          throw new Error("Csv file should contain only 4 columns!");
+        }
         data.MailFrom = data.MailFrom.replace(/"/g, "");
         data.MailTo = data.MailTo.replace(/"/g, "");
         dataArray.push(data);
@@ -111,9 +120,7 @@ function generateNewDate(currentDate, OUTPUT_ARRAY, type) {
       break;
     }
   }
-  // console.log(
-  //   "After Generating Date: " + format(newDate, "EEEE dd LLLL yyyy HH:mm:ss")
-  // );
+
   return newDate;
 }
 
@@ -162,6 +169,10 @@ function analyzeData() {
 
           const durationInDays = differenceInDays(endDate, startDate);
 
+          if (durationInDays < 0) {
+            throw new Error("Invalid dates!");
+          }
+
           let middleDate = addBusinessDays(startDate, durationInDays / 2);
           while (getDay(middleDate) !== 3 && getDay(middleDate) !== 5) {
             middleDate = addDays(middleDate, 1);
@@ -172,29 +183,9 @@ function analyzeData() {
             generateMinutes("middle")
           );
 
-          // console.log(
-          //   "isAMiddleDate",
-          //   isOverlap(middleDate, OUTPUT_ARRAY),
-          //   format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-          // );
-
           if (isOverlap(middleDate, OUTPUT_ARRAY)) {
-            // console.log(
-            //   "Overlap detected for middle date. Generating a new date."
-            // );
             middleDate = generateNewDate(middleDate, OUTPUT_ARRAY, "middle");
           }
-
-          // console.log(
-          //   "After middle date check:",
-          //   format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-          // );
-
-          // console.log(
-          //   "isAMiddleDate",
-          //   isOverlap(middleDate, OUTPUT_ARRAY),
-          //   format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-          // );
 
           let endDayStart = addDays(endDate, -15);
           const endDayEnd = addDays(endDate, -5);
@@ -210,29 +201,9 @@ function analyzeData() {
             generateMinutes("end")
           );
 
-          // console.log(
-          //   "isAnEndDate",
-          //   isOverlap(endDayStart, OUTPUT_ARRAY),
-          //   format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-          // );
-
           if (isOverlap(endDayStart, OUTPUT_ARRAY)) {
-            // console.log(
-            //   "Overlap detected for end date. Generating a new date."
-            // );
             endDayStart = generateNewDate(endDayStart, OUTPUT_ARRAY, "end");
           }
-
-          // console.log(
-          //   "After end date check:",
-          //   format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-          // );
-
-          // console.log(
-          //   "isAnEndDate",
-          //   isOverlap(endDayStart, OUTPUT_ARRAY),
-          //   format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-          // );
 
           const outputItem = {
             MailFrom: item.MailFrom,
@@ -282,45 +253,45 @@ async function getOutputArray() {
 
 getOutputArray();
 
-
-
 // Schdule emails
 function scheduleEmails(output) {
   output.map((outputItem) => {
     // Schedule the first email to be sent
-    const firstMail = schedule.scheduleJob(
-      new Date(outputItem.firstEmail.date),
-      () => {
-        sendMail(outputItem, FIRST_MAIL);
-      }
-    );
+    const firstMail = sendMail(outputItem, outputItem.firstEmail, FIRST_MAIL);
     // Schedule the second email to be sent
-    const secondMail = schedule.scheduleJob(
-      new Date(outputItem.secondEmail.startDate),
-      () => {
-        sendMail(outputItem, SECOND_MAIL);
-      }
+    const secondMail = sendMail(
+      outputItem,
+      outputItem.secondEmail,
+      SECOND_MAIL
     );
-
     // Schedule the last email to be sent
-    const lastMail = schedule.scheduleJob(
-      new Date(outputItem.lastEmail.startDate),
-      () => {
-        sendMail(outputItem, LAST_MAIL);
-      }
-    );
+    const lastMail = sendMail(outputItem, outputItem.lastEmail, LAST_MAIL);
   });
 }
 
 // Send email function
-function sendMail(outputItem, mailContent) {
+function sendMail(outputMail, outputItem, mailContent) {
   const htmlContent = fs.readFileSync("./index.html", "utf-8");
+  console.log(outputItem);
+
+  const replacedHtml = htmlContent
+    .replace("{{content}}", mailContent.content)
+    .replace(
+      "{{startDate}}",
+      outputItem.startDate ? `from ${outputItem.startDate}` : "You will receive"
+    )
+    .replace(
+      "{{endDate}}",
+      outputItem.endDate
+        ? ` to ${outputItem.endDate}`
+        : " two more emails soon!"
+    );
 
   const mailOptions = {
     from: "mrgy.sebastien@gmail.com",
-    to: outputItem.MailTo,
+    to: outputMail.MailTo,
     subject: mailContent.object,
-    html: htmlContent,
+    html: replacedHtml,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
