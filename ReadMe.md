@@ -191,6 +191,58 @@ To run tests, run the following command :
   }
 ```
 
+### Function scheduleEmails
+ scheduleEmails takes in arguments the outputArray of objects.
+ We get access to one of each object by doing a .map() and schedule each email by passing an anonymous function that calls sendMail.
+
+```bash
+  function scheduleEmails(output) {
+    output.map((outputItem) => {
+      const firstMail = schedule.scheduleJob(
+        new Date(outputItem.firstEmail.date),
+        () => {
+          sendMail(outputItem, FIRST_MAIL);
+        }
+      );
+      const secondMail = schedule.scheduleJob(
+        new Date(outputItem.secondEmail.startDate),
+        () => {
+          sendMail(outputItem, SECOND_MAIL);
+        }
+      );
+      const lastMail = schedule.scheduleJob(
+        new Date(outputItem.lastEmail.startDate),
+        () => {
+          sendMail(outputItem, LAST_MAIL);
+        }
+      );
+    });
+  }
+```
+
+### Function sendMail
+ sendMail is called inside the schedule function. it sets the mailOptions nodemailer (from, to, subject, text or html). 
+
+ Then it sends the mail to the specified email address. And logs it.
+```bash
+  function sendMail(outputItem, mailContent) {
+
+    const mailOptions = {
+      from: "mrgy.sebastien@gmail.com",
+      to: outputItem.MailTo,
+      subject: mailContent.object,
+      text: mailContent.content,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error:", error);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+  }
+```
 
 ## Tech Stack
 
