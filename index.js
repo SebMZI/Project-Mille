@@ -13,21 +13,22 @@ const {
 } = require("date-fns");
 const fs = require("fs");
 const dataCsvPath = "./data/data.csv";
-const FIRST_TEXT = {
+const FIRST_MAIL = {
   object: "Welcome to Mille!",
-  content: "Hello welcome to Mille!",
+  content: "Hello welcome to Mille! This is the first mail!",
 };
-const SECOND_TEXT = {
+const SECOND_MAIL = {
   object: "Welcome to Mille!",
-  content: "Hello welcome to Mille!",
+  content: "This is the second mail!",
 };
-const LAST_TEXT = {
+const LAST_MAIL = {
   object: "Welcome to Mille!",
-  content: "Hello welcome to Mille!",
+  content: "This is the third mail!",
 };
 const dataArray = [];
 const OUTPUT_ARRAY = [];
 
+// Read the CSV file and populate dataArray with the data
 function readCsvFile() {
   return new Promise((resolve, reject) => {
     fs.createReadStream(dataCsvPath)
@@ -46,6 +47,7 @@ function readCsvFile() {
   });
 }
 
+// Look if the newDate is already in the output Array
 function isOverlap(date, OUTPUT_ARRAY) {
   // format the new date into a string
   // start date
@@ -98,14 +100,14 @@ function generateNewDate(currentDate, OUTPUT_ARRAY, type) {
       break;
     }
   }
-  console.log(
-    "After Generating Date: " + format(newDate, "EEEE dd LLLL yyyy HH:mm:ss")
-  );
+  // console.log(
+  //   "After Generating Date: " + format(newDate, "EEEE dd LLLL yyyy HH:mm:ss")
+  // );
   return newDate;
 }
 
 function generateHours(date) {
-  console.log(date);
+  // console.log(date);
   let hoursRange;
   const day = getDay(date);
   if (day === 3) {
@@ -133,6 +135,10 @@ function generateMinutes(type) {
   return minutesRange[randomIndex];
 }
 
+function parseDate(date) {
+  return parse(date, "dd/MM/yyyy", new Date());
+}
+
 function analyzeData() {
   return new Promise(async (resolve, reject) => {
     try {
@@ -140,8 +146,8 @@ function analyzeData() {
 
       if (data) {
         data.map((item) => {
-          const startDate = parse(item.Start, "dd/MM/yyyy", new Date());
-          const endDate = parse(item.End, "dd/MM/yyyy", new Date());
+          const startDate = parseDate(item.Start);
+          const endDate = parseDate(item.End);
 
           const durationInDays = differenceInDays(endDate, startDate);
 
@@ -155,29 +161,29 @@ function analyzeData() {
             generateMinutes("middle")
           );
 
-          console.log(
-            "isAMiddleDate",
-            isOverlap(middleDate, OUTPUT_ARRAY),
-            format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-          );
+          // console.log(
+          //   "isAMiddleDate",
+          //   isOverlap(middleDate, OUTPUT_ARRAY),
+          //   format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          // );
 
           if (isOverlap(middleDate, OUTPUT_ARRAY)) {
-            console.log(
-              "Overlap detected for middle date. Generating a new date."
-            );
+            // console.log(
+            //   "Overlap detected for middle date. Generating a new date."
+            // );
             middleDate = generateNewDate(middleDate, OUTPUT_ARRAY, "middle");
           }
 
-          console.log(
-            "After middle date check:",
-            format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-          );
+          // console.log(
+          //   "After middle date check:",
+          //   format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          // );
 
-          console.log(
-            "isAMiddleDate",
-            isOverlap(middleDate, OUTPUT_ARRAY),
-            format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
-          );
+          // console.log(
+          //   "isAMiddleDate",
+          //   isOverlap(middleDate, OUTPUT_ARRAY),
+          //   format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss")
+          // );
 
           let endDayStart = addDays(endDate, -15);
           const endDayEnd = addDays(endDate, -5);
@@ -193,39 +199,39 @@ function analyzeData() {
             generateMinutes("end")
           );
 
-          console.log(
-            "isAnEndDate",
-            isOverlap(endDayStart, OUTPUT_ARRAY),
-            format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-          );
+          // console.log(
+          //   "isAnEndDate",
+          //   isOverlap(endDayStart, OUTPUT_ARRAY),
+          //   format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
+          // );
 
           if (isOverlap(endDayStart, OUTPUT_ARRAY)) {
-            console.log(
-              "Overlap detected for end date. Generating a new date."
-            );
+            // console.log(
+            //   "Overlap detected for end date. Generating a new date."
+            // );
             endDayStart = generateNewDate(endDayStart, OUTPUT_ARRAY, "end");
           }
 
-          console.log(
-            "After end date check:",
-            format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-          );
+          // console.log(
+          //   "After end date check:",
+          //   format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
+          // );
 
-          console.log(
-            "isAnEndDate",
-            isOverlap(endDayStart, OUTPUT_ARRAY),
-            format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
-          );
+          // console.log(
+          //   "isAnEndDate",
+          //   isOverlap(endDayStart, OUTPUT_ARRAY),
+          //   format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss")
+          // );
 
           const outputItem = {
             MailFrom: item.MailFrom,
             MailTo: item.MailTo,
             firstDate: {
-              ...FIRST_TEXT,
+              ...FIRST_MAIL,
               date: format(startDate, "EEEE dd LLLL yyyy"),
             },
             secondDate: {
-              ...SECOND_TEXT,
+              ...SECOND_MAIL,
               startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
               endDate: format(
                 addMinutes(middleDate, 30),
@@ -233,7 +239,7 @@ function analyzeData() {
               ),
             },
             lastDate: {
-              ...LAST_TEXT,
+              ...LAST_MAIL,
               startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
               endDate: format(
                 addHours(endDayStart, 1),
@@ -256,11 +262,13 @@ function analyzeData() {
 async function getOutputArray() {
   return analyzeData()
     .then((result) => {
-      console.log("Final OUTPUT_ARRAY:", result);
+      //console.log("Final OUTPUT_ARRAY:", result);
     })
     .catch((error) => {
-      console.error("Error:", error);
+      // console.error("Error:", error);
     });
 }
 
 getOutputArray();
+
+module.exports = { parseDate, isOverlap, generateNewDate };
