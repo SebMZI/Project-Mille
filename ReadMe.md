@@ -59,8 +59,10 @@ To run tests, run the following command :
 
 ## Roadmap
 
-- Add tests
-- Send email with google calendar time slots 
+- Send email with Gmail
+- Mail content would be a html file with file attachments
+- More tests
+
 
 
 
