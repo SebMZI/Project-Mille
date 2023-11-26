@@ -22,10 +22,10 @@ _Fonctionnalités:_
 3. _Analyse de Durée:_
 
    - // Calcul de la durée entre deux dates spécifiées pour chaque objet.
-   - Identification du milieu de cette période, en tenant compte des contraintes spécifiques (jours ouvrés, créneaux horaires) pour 30 minutes.
-   - je trouve le milieu de la durée sur un jour ouvré pour un créneau de 30 mins le mardi/vendredi entre 12h et 14h ou entre 17h et 18h le mercredi
-   - je trouve un créneau sur la période de fin entre 15 jours avant et 5 jours après pour 1 h le mardi/vendredi entre 12h et 14h ou entre 17h et 18h le mercredi
-   - Identification d'un créneau dans la période de fin (15 jours avant jusqu'à 5 jours après la période spécifiée) pour une durée d'1 heure, en respectant les mêmes contraintes.
+   - // Identification du milieu de cette période, en tenant compte des contraintes spécifiques (jours ouvrés, créneaux horaires) pour 30 minutes.
+   - // je trouve le milieu de la durée sur un jour ouvré pour un créneau de 30 mins le mardi/vendredi entre 12h et 14h ou entre 17h et 18h le mercredi
+   - // je trouve un créneau sur la période de fin entre 15 jours avant et 5 jours après pour 1 h le mardi/vendredi entre 12h et 14h ou entre 17h et 18h le mercredi
+   - // Identification d'un créneau dans la période de fin (15 jours avant jusqu'à 5 jours après la période spécifiée) pour une durée d'1 heure, en respectant les mêmes contraintes.
 
 4. _Génération de Résultats:_
    - // Production d'un array d'objets en sortie.
@@ -52,13 +52,3 @@ _Tests:_
 - Tests d'intégration pour assurer le bon fonctionnement du script dans son ensemble.
 
 
--// je prends l'input en paramètre de mon script
-- //je mets le cdv dans un array d'objet
-- //je boucle dessus
-- // j'analyse la durée entre les deux dates
-- je trouve le milieu de la durée sur un jour ouvré pour un créneau de 30 mins le mardi/vendredi entre 12h et 14h ou entre 17h et 18h le mercredi
-- je trouve un créneau sur la période de fin entre 15 jours avant et 5 jours après pour 1 h le mardi/vendredi entre 12h et 14h ou entre 17h et 18h le mercredi
-- Je ressors un array d'objet avec un objet par ligne qui va contenir trois sous objets (un par email) 
-1/ pour la première colonne qui va juste contenir un objet et un texte + la date (correspondant à la première date de la période)
-2/ pour la deuxième colonne qui va contenir un objet et un texte + la date (correspondant à au milieu de la période jour ouvré)
-3/ pour la deuxième colonne qui va contenir un objet et un texte + la date (correspondant à la fin de la période jour ouvré)

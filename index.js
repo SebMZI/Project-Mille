@@ -1,4 +1,7 @@
+require("dotenv").config();
 const csv = require("csv-parser");
+const nodemailer = require("nodemailer");
+const schedule = require("node-schedule");
 const {
   format,
   differenceInDays,
@@ -27,6 +30,14 @@ const LAST_MAIL = {
 };
 const dataArray = [];
 const OUTPUT_ARRAY = [];
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "mrgy.sebastien@gmail.com",
+    pass: process.env.AUTH_TRANSPORTER_PASS, // Use the App Password here
+  },
+});
 
 // Read the CSV file and populate dataArray with the data
 function readCsvFile() {
@@ -64,10 +75,10 @@ function isOverlap(date, OUTPUT_ARRAY) {
   );
 
   return OUTPUT_ARRAY.some((it) => {
-    const itStartDateString = it.secondDate.startDate;
-    const isSecondEndDate = it.secondDate.endDate;
-    const isLastStartDateString = it.lastDate.startDate;
-    const itEndDateString = it.lastDate.endDate;
+    const itStartDateString = it.secondEmail.startDate;
+    const isSecondEndDate = it.secondEmail.endDate;
+    const isLastStartDateString = it.lastEmail.startDate;
+    const itEndDateString = it.lastEmail.endDate;
 
     return (
       isLastStartDateString === startDateString ||
@@ -226,11 +237,11 @@ function analyzeData() {
           const outputItem = {
             MailFrom: item.MailFrom,
             MailTo: item.MailTo,
-            firstDate: {
+            firstEmail: {
               ...FIRST_MAIL,
               date: format(startDate, "EEEE dd LLLL yyyy"),
             },
-            secondDate: {
+            secondEmail: {
               ...SECOND_MAIL,
               startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
               endDate: format(
@@ -238,7 +249,7 @@ function analyzeData() {
                 "EEEE dd LLLL yyyy HH:mm:ss"
               ),
             },
-            lastDate: {
+            lastEmail: {
               ...LAST_MAIL,
               startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
               endDate: format(
@@ -260,15 +271,65 @@ function analyzeData() {
 }
 
 async function getOutputArray() {
-  return analyzeData()
-    .then((result) => {
-      //console.log("Final OUTPUT_ARRAY:", result);
-    })
-    .catch((error) => {
-      // console.error("Error:", error);
-    });
+  try {
+    const result = await analyzeData();
+    scheduleEmails(result);
+    console.log("Emails scheduled successfully.");
+  } catch (error) {
+    console.error("Error getting output array:", error);
+  }
 }
 
 getOutputArray();
+
+
+
+// Schdule emails
+function scheduleEmails(output) {
+  output.map((outputItem) => {
+    // Schedule the first email to be sent
+    const firstMail = schedule.scheduleJob(
+      new Date(outputItem.firstEmail.date),
+      () => {
+        sendMail(outputItem, FIRST_MAIL);
+      }
+    );
+    // Schedule the second email to be sent
+    const secondMail = schedule.scheduleJob(
+      new Date(outputItem.secondEmail.startDate),
+      () => {
+        sendMail(outputItem, SECOND_MAIL);
+      }
+    );
+
+    // Schedule the last email to be sent
+    const lastMail = schedule.scheduleJob(
+      new Date(outputItem.lastEmail.startDate),
+      () => {
+        sendMail(outputItem, LAST_MAIL);
+      }
+    );
+  });
+}
+
+// Send email function
+function sendMail(outputItem, mailContent) {
+  const htmlContent = fs.readFileSync("./index.html", "utf-8");
+
+  const mailOptions = {
+    from: "mrgy.sebastien@gmail.com",
+    to: outputItem.MailTo,
+    subject: mailContent.object,
+    html: htmlContent,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  });
+}
 
 module.exports = { parseDate, isOverlap, generateNewDate };
