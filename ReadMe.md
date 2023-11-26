@@ -77,6 +77,106 @@ To run tests, run the following command :
   }
 ```
 
+### Function analyzeData
+  We are waiting for the csv file to be processed and then conditionally wait for the data.
+  parsing the date by using the parseDate function.
+
+  The differenceInDays helps us determine the duration in days between the start and end dates.
+  
+  Then we determine the middle date using the start date and the duration in days devided by 2.
+  And addDays until we get a wednesday or a Friday. we need to set the Hours and the minutes to the date, that's why we are using the generateHours and generateMinutes functions.
+ 
+  Next, we need to check if the date doesn't already exist inside the output array, to check we are using the isOverlap function by passing two argument the middle Date and the output array.
+  It's almost the same process for the end date except we are looking for a date between 15 days before and 5 days before the end.
+
+  Finally, we set the outputItem object and push it into the ouput array.
+```bash
+  function analyzeData() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const data = await readCsvFile();
+
+        if (data) {
+          data.map((item) => {
+            const startDate = parseDate(item.Start);
+            const endDate = parseDate(item.End);
+
+            const durationInDays = differenceInDays(endDate, startDate);
+
+            let middleDate = addBusinessDays(startDate, durationInDays / 2);
+            while (getDay(middleDate) !== 3 && getDay(middleDate) !== 5) {
+              middleDate = addDays(middleDate, 1);
+            }
+
+            middleDate = addMinutes(
+              addHours(middleDate, generateHours(middleDate)),
+              generateMinutes("middle")
+            );
+
+            if (isOverlap(middleDate, OUTPUT_ARRAY)) {
+              // console.log(
+              //   "Overlap detected for middle date. Generating a new date."
+              // );
+              middleDate = generateNewDate(middleDate, OUTPUT_ARRAY, "middle");
+            }
+            
+            let endDayStart = addDays(endDate, -15);
+            const endDayEnd = addDays(endDate, -5);
+
+            while (endDayStart <= endDayEnd) {
+              if (getDay(endDayStart) === 3 || getDay(endDayStart) === 5) {
+                break;
+              }
+              endDayStart = addDays(endDayStart, 1);
+            }
+            endDayStart = addMinutes(
+              addHours(endDayStart, generateHours(endDayStart)),
+              generateMinutes("end")
+            );
+
+            if (isOverlap(endDayStart, OUTPUT_ARRAY)) {
+              endDayStart = generateNewDate(endDayStart, OUTPUT_ARRAY, "end");
+            }
+
+            const outputItem = {
+              MailFrom: item.MailFrom,
+              MailTo: item.MailTo,
+              firstEmail: {
+                ...FIRST_MAIL,
+                date: format(startDate, "EEEE dd LLLL yyyy"),
+              },
+              secondEmail: {
+                ...SECOND_MAIL,
+                startDate: format(middleDate, "EEEE dd LLLL yyyy HH:mm:ss"),
+                endDate: format(
+                  addMinutes(middleDate, 30),
+                  "EEEE dd LLLL yyyy HH:mm:ss"
+                ),
+              },
+              lastEmail: {
+                ...LAST_MAIL,
+                startDate: format(endDayStart, "EEEE dd LLLL yyyy HH:mm:ss"),
+                endDate: format(
+                  addHours(endDayStart, 1),
+                  "EEEE dd LLLL yyyy HH:mm:ss"
+                ),
+              },
+            };
+
+            OUTPUT_ARRAY.push(outputItem);
+          });
+
+          resolve(OUTPUT_ARRAY);
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+```
+
+
+
 ### Function isOverlap
   isOverlap is checking for overlap between two dates inside the same array (output array)
   if it found one it will return a boolean (true or false).
