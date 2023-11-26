@@ -49,6 +49,8 @@ To run tests, run the following command :
 - [date-fns](https://date-fns.org/v2.16.1/docs/format)
 - [csv-parser](https://www.npmjs.com/package/csv-parser)
 - [nodemon](https://www.npmjs.com/package//nodemon)
+- [nodemailer](https://www.npmjs.com/package/nodemailer)
+- [node-schedule](https://www.npmjs.com/package/node-schedule)
 
 ### Function Read CSV File
   This function is using csv-parser and fs from node.js.
