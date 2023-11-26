@@ -78,7 +78,11 @@ This script analyzes a .csv file and dynamically creates time slots of 30-minute
  GenerateNewDate is complementary to isOverlap function.
  When isOverlap function returns true it calls the generateNewDate.
 
- It takes in arguments the current date, the outputArray and the tye (middle or end).
+ It takes in arguments :
+ - the current date
+ - the outputArray
+ - the tye (middle or end).
+
  changeType is a random number generator. We compare it into a condition to either setHours, setMinutes or addDays.
 
  While days isn't a Wednesday or a Friday, the addDays won't stop. Same for the generateNewDate until isOverlap function returns false.
@@ -110,6 +114,52 @@ This script analyzes a .csv file and dynamically creates time slots of 30-minute
     return newDate;
   }
 ```
+
+### Function generateHours or generateMinutes
+ GenerateHours takes in argument the date and looks if it's either a Wednesday or a Friday.
+ It will the set the hoursRange.
+ A random number will be generated to be the index of the array.
+ The function will return the number from the index of the array
+
+ GenerateMinutes takes in argument the type (middle or end) and looks if it's either middle or  end.
+ It will the set the minutesRange.
+ A random number will be generated to be the index of the array.
+ The function will return the number from the index of the array
+
+```bash
+  function generateHours(date) {
+    // console.log(date);
+    let hoursRange;
+    const day = getDay(date);
+    if (day === 3) {
+      hoursRange = [[12, 13], [17]];
+    } else if (day === 5) {
+      hoursRange = [[12, 13]];
+    }
+
+    const randomIndex = Math.floor(Math.random() * hoursRange.length);
+    const randomIndexofIndex = Math.floor(
+      Math.random() * hoursRange[randomIndex].length
+    );
+    return hoursRange[randomIndex][randomIndexofIndex];
+  }
+
+  // generate a minute with a range
+  function generateMinutes(type) {
+    let minutesRange;
+    if (type === "middle") {
+      minutesRange = [0, 30];
+    } else if (type === "end") {
+      minutesRange = [0];
+    }
+    const randomIndex = Math.floor(Math.random() * minutesRange.length);
+    return minutesRange[randomIndex];
+  }
+```
+
+
+
+
 
 ## Installation
 
