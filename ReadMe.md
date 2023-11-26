@@ -7,6 +7,42 @@ This script analyzes a .csv file and dynamically creates time slots of 30-minute
 
 - [@SebMZI](https://github.com/SebMZI)
 
+## Installation
+
+Clone the project first :
+
+```bash
+  git clone https://github.com/SebMZI/Project-Mille
+  cd Project-Mille
+```
+
+Then install node modules :
+
+```bash
+  npm install
+```
+ 
+    
+## Run the script
+
+Start the development server
+
+```bash
+  npm run dev
+```
+
+Start the server
+
+```bash
+  npm run start
+```
+## Running Tests
+
+To run tests, run the following command :
+
+```bash
+  npm run test
+```
 
 ## Documentation
 
@@ -128,7 +164,6 @@ This script analyzes a .csv file and dynamically creates time slots of 30-minute
 
 ```bash
   function generateHours(date) {
-    // console.log(date);
     let hoursRange;
     const day = getDay(date);
     if (day === 3) {
@@ -144,7 +179,6 @@ This script analyzes a .csv file and dynamically creates time slots of 30-minute
     return hoursRange[randomIndex][randomIndexofIndex];
   }
 
-  // generate a minute with a range
   function generateMinutes(type) {
     let minutesRange;
     if (type === "middle") {
@@ -155,47 +189,6 @@ This script analyzes a .csv file and dynamically creates time slots of 30-minute
     const randomIndex = Math.floor(Math.random() * minutesRange.length);
     return minutesRange[randomIndex];
   }
-```
-
-
-
-
-
-## Installation
-
-Clone the project first :
-
-```bash
-  git clone https://github.com/SebMZI/Project-Mille
-  cd Project-Mille
-```
-
-Then install node modules :
-
-```bash
-  npm install
-```
- 
-    
-## Run the script
-
-Start the development server
-
-```bash
-  npm run dev
-```
-
-Start the server
-
-```bash
-  npm run start
-```
-## Running Tests
-
-To run tests, run the following command :
-
-```bash
-  npm run test
 ```
 
 
