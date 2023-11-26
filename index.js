@@ -41,10 +41,11 @@ const transporter = nodemailer.createTransport({
 });
 
 // Read the CSV file and populate dataArray with the data
-function readCsvFile() {
+function readCsvFile(dataCsv) {
   return new Promise((resolve, reject) => {
-    const extCsv = path.extname(dataCsvPath);
-    console.log(extCsv);
+    //console.log(typeof dataCsv);
+    const extCsv = path.extname(dataCsv);
+
     if (extCsv !== ".csv") {
       throw new Error("File's extension needs to be .csv");
     }
@@ -160,10 +161,15 @@ function parseDate(date) {
 function analyzeData() {
   return new Promise(async (resolve, reject) => {
     try {
-      const data = await readCsvFile();
+      const data = await readCsvFile(dataCsvPath);
 
       if (data) {
         data.map((item) => {
+          const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+          if (!dateRegex.test(item.Start) || !dateRegex.test(item.End)) {
+            throw new Error("Date format not supported! Should be xx/xx/xxxx");
+          }
+
           const startDate = parseDate(item.Start);
           const endDate = parseDate(item.End);
 
@@ -245,9 +251,9 @@ async function getOutputArray() {
   try {
     const result = await analyzeData();
     scheduleEmails(result);
-    console.log("Emails scheduled successfully.");
+    //console.log("Emails scheduled successfully.");
   } catch (error) {
-    console.error("Error getting output array:", error);
+    //console.error("Error getting output array:", error);
   }
 }
 
@@ -272,7 +278,7 @@ function scheduleEmails(output) {
 // Send email function
 function sendMail(outputMail, outputItem, mailContent) {
   const htmlContent = fs.readFileSync("./index.html", "utf-8");
-  console.log(outputItem);
+  // console.log(outputItem);
 
   const replacedHtml = htmlContent
     .replace("{{content}}", mailContent.content)
@@ -296,11 +302,11 @@ function sendMail(outputMail, outputItem, mailContent) {
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error("Error:", error);
+      //console.error("Error:", error);
     } else {
-      console.log("Email sent:", info.response);
+      // console.log("Email sent:", info.response);
     }
   });
 }
 
-module.exports = { parseDate, isOverlap, generateNewDate };
+module.exports = { parseDate, isOverlap, generateNewDate, readCsvFile };

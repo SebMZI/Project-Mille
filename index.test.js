@@ -1,21 +1,26 @@
 const { differenceInMinutes, differenceInHours } = require("date-fns");
-const { parseDate, isOverlap, generateNewDate } = require("./index");
+const {
+  parseDate,
+  isOverlap,
+  generateNewDate,
+  readCsvFile,
+} = require("./index");
 const OUTPUT_ARRAY = [
   {
     MailFrom: "antoine.mille.fb@gmail.com",
     MailTo: "toto@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 15 November 2023",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Friday 15 March 2024 13:00:00",
       endDate: "Friday 15 March 2024 13:30:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 24 April 2024 17:00:00",
@@ -25,18 +30,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "antoine.mille.site@gmail.com",
     MailTo: "tata@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Friday 19 April 2024 13:00:00",
       endDate: "Friday 19 April 2024 13:30:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 22 May 2024 17:00:00",
@@ -46,18 +51,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "site@gmail.com",
     MailTo: "tato@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Friday 19 April 2024 13:30:00",
       endDate: "Friday 19 April 2024 14:00:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 22 May 2024 12:00:00",
@@ -67,18 +72,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "antoinette.millA.site@gmail.com",
     MailTo: "taaato@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Wednesday 24 April 2024 13:30:00",
       endDate: "Wednesday 24 April 2024 14:00:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 22 May 2024 13:00:00",
@@ -88,18 +93,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "antoine.milA.site@gmail.com",
     MailTo: "tazzto@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Wednesday 24 April 2024 13:00:00",
       endDate: "Wednesday 24 April 2024 13:30:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Friday 24 May 2024 13:00:00",
@@ -109,18 +114,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "antoinetteff.millA.site@gmail.com",
     MailTo: "taaeaato@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Friday 26 April 2024 13:30:00",
       endDate: "Friday 26 April 2024 14:00:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Friday 24 May 2024 17:00:00",
@@ -130,18 +135,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "seb@gmail.com",
     MailTo: "to@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Friday 19 April 2024 12:30:00",
       endDate: "Friday 19 April 2024 13:00:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Friday 24 May 2024 12:00:00",
@@ -151,18 +156,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "mzi@gmail.com",
     MailTo: "ta@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Friday 19 April 2024 12:00:00",
       endDate: "Friday 19 April 2024 12:30:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 29 May 2024 13:00:00",
@@ -172,18 +177,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "mzi@gmail.com",
     MailTo: "tie@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Wednesday 24 April 2024 12:30:00",
       endDate: "Wednesday 24 April 2024 13:00:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 29 May 2024 12:00:00",
@@ -193,18 +198,18 @@ const OUTPUT_ARRAY = [
   {
     MailFrom: "mzi@gmail.com",
     MailTo: "tess@gmail.com",
-    firstDate: {
+    firstEmail: {
       object: "Welcome to Mille!",
       content: "Hello welcome to Mille! This is the first mail!",
       date: "Wednesday 03 January 2024",
     },
-    secondDate: {
+    secondEmail: {
       object: "Welcome to Mille!",
       content: "This is the second mail!",
       startDate: "Wednesday 24 April 2024 12:00:00",
       endDate: "Wednesday 24 April 2024 12:30:00",
     },
-    lastDate: {
+    lastEmail: {
       object: "Welcome to Mille!",
       content: "This is the third mail!",
       startDate: "Wednesday 29 May 2024 17:00:00",
@@ -214,6 +219,40 @@ const OUTPUT_ARRAY = [
 ];
 
 describe("In the script", () => {
+  describe("CSV Test", () => {
+    it("Should have the correct number of columns", async function () {
+      const dataCsvPath = "./data/data.csv";
+      const data = await readCsvFile(dataCsvPath);
+      const expectedColumns = 4;
+
+      data.map((row) => {
+        expect(Object.keys(row).length).toEqual(expectedColumns);
+      });
+    });
+    it("Should throw an error if not .csv", async function () {
+      const dataWrong = "./data/data.txt";
+      let error;
+      try {
+        const data = await readCsvFile(dataWrong);
+      } catch (err) {
+        error = err;
+      }
+      expect(error.message).toEqual("File's extension needs to be .csv");
+    });
+    it("Should have dates in the correct format (dd/MM/yyyy)", async function () {
+      const dataCsvPath = "./data/data.csv";
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+
+      try {
+        const data = await readCsvFile(dataCsvPath);
+        data.map((item) => {
+          expect(dateRegex.test(item.Start)).toBeTruthy();
+        });
+      } catch (err) {
+        error = err;
+      }
+    });
+  });
   describe("parseDate should return a date string like  Wed Jan 03 2024 00:00:00 GMT+0100 (heure normale d`Europe centrale) when", () => {
     it("given 3/1/2024", () => {
       const date = "3/1/2024";
@@ -246,13 +285,13 @@ describe("In the script", () => {
       expect(alreadyExists).toBeFalsy();
     });
   });
-  
+
   describe("The duration within the time slot should", () => {
     it("be 30 minutes when it's the middle date", () => {
       OUTPUT_ARRAY.map((item) => {
         const diffMinutes = differenceInMinutes(
-          new Date(item.secondDate.endDate),
-          new Date(item.secondDate.startDate)
+          new Date(item.secondEmail.endDate),
+          new Date(item.secondEmail.startDate)
         );
         expect(diffMinutes).toEqual(30);
       });
@@ -260,8 +299,8 @@ describe("In the script", () => {
     it("be 1hour when it's the end date", () => {
       OUTPUT_ARRAY.map((item) => {
         const diffHours = differenceInHours(
-          new Date(item.lastDate.endDate),
-          new Date(item.lastDate.startDate)
+          new Date(item.lastEmail.endDate),
+          new Date(item.lastEmail.startDate)
         );
         expect(diffHours).toEqual(1);
       });
